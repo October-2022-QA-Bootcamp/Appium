@@ -1,10 +1,11 @@
 package unittests;
 
 import org.testng.annotations.Test;
+import utils.ReadConfig;
+import static utils.Constant.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
-
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
@@ -69,5 +70,31 @@ public class AppiumUnitTests {
 	    jsExecutor.executeScript("window.scrollBy(0,500)"); //up
 	    
 	    driver.quit();
+	}
+	
+	@Test
+	public void installedAppTest() {
+		ReadConfig config = new ReadConfig(LOCAL_PROFILE);
+		DesiredCapabilities capabilities = new DesiredCapabilities();
+		capabilities.setCapability(APPIUM+PLATFORM_NAME, config.getProp(KEY_PLATFORM));
+		capabilities.setCapability(APPIUM+PLATFORM_VERSION, config.getProp(KEY_PLATFORM_VERSION));
+		capabilities.setCapability(APPIUM+APP_ACTIVITY, config.getProp(KEY_APP_ACTIVITY));
+		capabilities.setCapability(APPIUM+APP_PACKAGE, config.getProp(KEY_APP_PACKAGE));
+
+		URL url = null;
+		try {
+			url = new URL(config.getProp(KEY_URL));
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+		WebDriver driver = new RemoteWebDriver(url,capabilities);
+		driver.quit();
+	}
+	
+	@Test
+	public void startServer() {
+		//AppiumServiceBuilder builder = new AppiumServiceBuilder();
+		String i = "-88";
+		System.out.println(i.replaceAll("[0-9]", ""));
 	}
 }

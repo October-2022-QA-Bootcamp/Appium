@@ -11,6 +11,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Parameters;
 
+import page_object.CalculatorObject;
 import page_object.HomePage;
 import static utils.Constant.*;
 import utils.ReadConfig;
@@ -21,6 +22,7 @@ public class TestBase {
 	ReadConfig appConfig = new ReadConfig(APPLICATION_PROFILE);
 	
 	protected HomePage homePage;
+	protected CalculatorObject calculatorObj;
 
 	@Parameters({"profile"})
 	@BeforeMethod
@@ -28,14 +30,29 @@ public class TestBase {
 		if(profile.equalsIgnoreCase(BS_PROFILE)) {
 			driver = remoteBrowserStackCapabilities();
 		}else if(profile.equalsIgnoreCase(LOCAL_PROFILE)) {
-			driver = localAppiumCapabilities();
+			String appType = appConfig.getProp(APP_TYPE);
+			switch (appType) {
+			case WEB_APP:
+				driver = localAppiumCapabilities();
+				driver.get(appConfig.getProp(URL));
+				break;
+			case INSTALLED_APP:
+				driver = localInstalledAppCaps();
+				break;
+			case NOT_INSTALLED_APP:
+				driver = localNotInstalledAppCaps();
+				break;
+			default:
+				driver = localAppiumCapabilities();
+				break;
+			}
 		}
 		initPageObjects();
-		driver.get(appConfig.getProp(URL));
 	}
 
 	protected void initPageObjects() {
 		homePage = new HomePage(driver);
+		calculatorObj = new CalculatorObject(driver);
 	}
 	
 	protected WebDriver localAppiumCapabilities() {
@@ -55,6 +72,41 @@ public class TestBase {
 		return new RemoteWebDriver(url, capabilities);
 	}
 
+	protected WebDriver localInstalledAppCaps() {
+		ReadConfig config = new ReadConfig(LOCAL_PROFILE);
+		DesiredCapabilities capabilities = new DesiredCapabilities();
+		capabilities.setCapability(APPIUM+PLATFORM_NAME, config.getProp(KEY_PLATFORM));
+		capabilities.setCapability(APPIUM+PLATFORM_VERSION, config.getProp(KEY_PLATFORM_VERSION));
+		capabilities.setCapability(APPIUM+APP_ACTIVITY, config.getProp(KEY_APP_ACTIVITY));
+		capabilities.setCapability(APPIUM+APP_PACKAGE, config.getProp(KEY_APP_PACKAGE));
+
+		URL url = null;
+		try {
+			url = new URL(config.getProp(KEY_URL));
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+		
+		return new RemoteWebDriver(url, capabilities);
+	}
+	
+	protected WebDriver localNotInstalledAppCaps() {
+		ReadConfig config = new ReadConfig(LOCAL_PROFILE);
+		DesiredCapabilities capabilities = new DesiredCapabilities();
+		capabilities.setCapability(PLATFORM_NAME, config.getProp(KEY_PLATFORM));
+		capabilities.setCapability(PLATFORM_VERSION, config.getProp(KEY_PLATFORM_VERSION));
+		capabilities.setCapability(APP, config.getProp(KEY_APP_PATH));
+
+		URL url = null;
+		try {
+			url = new URL(config.getProp(KEY_URL));
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+		
+		return new RemoteWebDriver(url, capabilities);
+	}
+	
 	protected WebDriver remoteBrowserStackCapabilities() {
 		ReadConfig config = new ReadConfig(BS_PROFILE);
 		MutableCapabilities capabilities = new MutableCapabilities();
