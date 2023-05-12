@@ -14,6 +14,11 @@ public class CommonAction {
 		return element.getText();
 	}
 	
+	public static void insert(WebElement element, String text) {
+		element.sendKeys(text);
+		Logs.log(text + " >>> has been inserted into >>> " + element);
+	}
+	
 	public static void insert_n_enter(WebElement element, String text) {
 		element.sendKeys(text, Keys.ENTER);
 		Logs.log(text + " >>> has been inserted into >>> " + element);
